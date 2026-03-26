@@ -1,7 +1,6 @@
 import os
 import pytest
 from playwright.sync_api import Playwright
-
 from api.account_api import AccountApi
 from utils.data_factory import UserData, build_user
 

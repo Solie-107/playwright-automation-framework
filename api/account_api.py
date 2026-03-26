@@ -1,10 +1,7 @@
 from __future__ import annotations
-
 import json
 from typing import Any
-
 from playwright.sync_api import APIRequestContext
-
 from config.settings import API_BASE_URL
 from utils.data_factory import UserData
 

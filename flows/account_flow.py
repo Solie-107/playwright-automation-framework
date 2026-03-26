@@ -1,5 +1,4 @@
 from playwright.sync_api import Page
-
 from api.account_api import AccountApi
 from pages.home_page import HomePage
 from pages.signup_login_page import SignupLoginPage
