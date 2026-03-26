@@ -6,6 +6,24 @@ from api.account_api import AccountApi
 from utils.data_factory import UserData, build_user
 
 
+def block_ads(context):
+    context.route(
+        "**/*",
+        lambda route: (
+            route.abort()
+            if any(x in route.request.url.lower() for x in [
+                "bible.new",
+                "doubleclick",
+                "googlesyndication",
+                "googleads",
+                "ads",
+                "analytics",
+            ])
+            else route.continue_()
+        ),
+    )
+
+
 # ---------- DATA ----------
 @pytest.fixture
 def user_data() -> UserData:
@@ -33,12 +51,15 @@ def context(browser, request):
         record_video_size={"width": 1280, "height": 720},
     )
 
-    # 👉 start trace
+    # חוסם redirects/ads חיצוניים
+    block_ads(context)
+
+    # start trace
     context.tracing.start(screenshots=True, snapshots=True, sources=True)
 
     yield context
 
-    # 👉 save trace
+    # save trace
     test_name = request.node.name.replace("[", "_").replace("]", "_")
     context.tracing.stop(path=f"artifacts/traces/{test_name}.zip")
 
@@ -53,13 +74,16 @@ def page(context, request):
     page = context.new_page()
     yield page
 
-    # 👉 screenshot only if test failed
+    # screenshot only if test failed
     if hasattr(request.node, "rep_call") and request.node.rep_call.failed:
         test_name = request.node.name.replace("[", "_").replace("]", "_")
-        page.screenshot(
-            path=f"artifacts/screenshots/{test_name}.png",
-            full_page=True
-        )
+        try:
+            page.screenshot(
+                path=f"artifacts/screenshots/{test_name}.png",
+                full_page=True
+            )
+        except Exception as e:
+            print(f"[WARNING] Screenshot failed: {e}")
 
     page.close()
 
