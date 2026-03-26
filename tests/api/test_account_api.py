@@ -1,5 +1,4 @@
 import pytest
-
 from utils.data_factory import UserData
 
 

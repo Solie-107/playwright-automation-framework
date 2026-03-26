@@ -1,4 +1,5 @@
 from playwright.sync_api import Page
+
 from api.account_api import AccountApi
 from pages.home_page import HomePage
 from pages.signup_login_page import SignupLoginPage
@@ -28,23 +29,19 @@ class AccountFlow:
         self.signup_login_page.fill_account_information(user)
         self.signup_login_page.verify_account_created()
         self.signup_login_page.click_continue_after_create()
-        
-        # חכה שה-home ייטען
-        self.page.wait_for_timeout(2000)
 
-        print(f"[DEBUG] URL after continue: {self.page.url}")
-        print(self.page.locator("body").inner_text()[:1000])
-
-        #self.home_page.verify_logged_in_as(user.name)
+        self.home_page.ensure_home_loaded()
+        self.home_page.verify_logged_in_as(user.name)
 
     def login_via_ui(self, user: UserData) -> None:
         print(f"\n[FLOW] Login via UI: {user.email}")
 
-        self.home_page.load()   
+        self.home_page.load()
         self.home_page.click_signup_login()
         self.signup_login_page.verify_page_loaded()
 
         self.signup_login_page.login(user.email, user.password)
+        self.home_page.ensure_home_loaded()
         self.home_page.verify_logged_in_as(user.name)
 
     def logout(self) -> None:
@@ -94,8 +91,6 @@ class AccountFlow:
             email=user.email,
             password=user.password,
         )
-
-        print(f"[API] deleteAccount response: {response}")
 
         if response["status_code"] == 403:
             print("[WARNING] Delete blocked by corporate firewall (expected in this environment)")

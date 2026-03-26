@@ -1,25 +1,32 @@
 from playwright.sync_api import expect
+
 from pages.base_page import BasePage
 from utils.data_factory import UserData
 
 
 class SignupLoginPage(BasePage):
     def verify_page_loaded(self) -> None:
-        expect(self.page.get_by_text("Login to your account")).to_be_visible()
-        expect(self.page.get_by_text("New User Signup!")).to_be_visible()
+        self.page.wait_for_load_state("domcontentloaded")
+
+        expect(self.page.locator("[data-qa='login-email']")).to_be_visible(timeout=15000)
+        expect(self.page.locator("[data-qa='signup-name']")).to_be_visible(timeout=15000)
 
     def signup_new_user(self, user: UserData) -> None:
         self.page.locator("[data-qa='signup-name']").fill(user.name)
         self.page.locator("[data-qa='signup-email']").fill(user.email)
         self.page.locator("[data-qa='signup-button']").click()
 
+        # מוודא שאכן עברנו למסך של הטופס
+        self.page.wait_for_url("**/signup*", timeout=15000)
+
     def fill_account_information(self, user: UserData) -> None:
         print("\n[FLOW] Waiting for Account Information page...")
 
-        self.page.wait_for_selector("[data-qa='password']", timeout=15000)
+        self.page.wait_for_selector("[data-qa='password']", timeout=20000)
         print("[DEBUG] Page ready")
 
         self.page.locator("[data-qa='password']").fill(user.password)
+
         self.page.locator("[data-qa='days']").select_option("1")
         self.page.locator("[data-qa='months']").select_option("1")
         self.page.locator("[data-qa='years']").select_option("2000")
@@ -37,15 +44,14 @@ class SignupLoginPage(BasePage):
 
         create_button = self.page.locator("[data-qa='create-account']")
         create_button.scroll_into_view_if_needed()
-        expect(create_button).to_be_visible(timeout=10000)
-        expect(create_button).to_be_enabled(timeout=10000)
+        expect(create_button).to_be_visible(timeout=15000)
+        expect(create_button).to_be_enabled(timeout=15000)
         create_button.click(force=True)
 
         if "google_vignette" in self.page.url:
             print("[WARNING] google_vignette detected after submit, clearing hash")
             self.page.evaluate("window.location.hash = ''")
             self.page.wait_for_timeout(1000)
-
 
     def verify_account_created(self) -> None:
         print(f"[DEBUG] Current URL: {self.page.url}")
@@ -57,37 +63,38 @@ class SignupLoginPage(BasePage):
         elif "automationexercise.com" not in self.page.url:
             print("[WARNING] External redirect detected, going back")
             self.page.go_back()
-            self.page.wait_for_load_state("load")
+            self.page.wait_for_load_state("domcontentloaded")
 
-        expect(self.page.locator("body")).to_contain_text("Account Created!", timeout=15000)
-        expect(self.page.locator("[data-qa='continue-button']")).to_be_visible(timeout=15000)
-
+        expect(self.page.locator("body")).to_contain_text("Account Created!", timeout=20000)
+        expect(self.page.locator("[data-qa='continue-button']")).to_be_visible(timeout=20000)
 
     def click_continue_after_create(self) -> None:
         print(f"[DEBUG] Before continue URL: {self.page.url}")
 
-        # ניקוי vignette
         if "google_vignette" in self.page.url:
             print("[FIX] Removing google_vignette")
             self.page.evaluate("window.location.hash = ''")
             self.page.wait_for_timeout(1000)
 
-        # ניסיון רגיל
         continue_button = self.page.locator("[data-qa='continue-button']")
+        continue_button.scroll_into_view_if_needed()
+        expect(continue_button).to_be_visible(timeout=15000)
 
-        if continue_button.is_visible():
-            print("[DEBUG] Clicking continue button")
-            continue_button.click(force=True)
-            self.page.wait_for_load_state("load")
+        print("[DEBUG] Clicking continue button")
+        continue_button.click(force=True)
+        self.page.wait_for_timeout(1500)
 
-        # ❗ fallback חזק (זה הקסם)
+        # fallback: אם לא עברנו דף, נכריח home
         if "account_created" in self.page.url:
             print("[FIX] Still on account_created → forcing navigation to home")
-            self.page.goto("https://automationexercise.com/")
-            self.page.wait_for_load_state("load")
+            self.page.goto("https://automationexercise.com/", wait_until="domcontentloaded", timeout=30000)
+
+        if "google_vignette" in self.page.url:
+            print("[FIX] Still got google_vignette after continue, clearing hash")
+            self.page.evaluate("window.location.hash = ''")
+            self.page.wait_for_timeout(1000)
 
         print(f"[DEBUG] After continue URL: {self.page.url}")
-
 
     def login(self, email: str, password: str) -> None:
         print(f"[DEBUG] Performing login for: {email}")
@@ -96,10 +103,13 @@ class SignupLoginPage(BasePage):
         password_input = self.page.locator("[data-qa='login-password']")
         login_button = self.page.locator("[data-qa='login-button']")
 
+        expect(email_input).to_be_visible(timeout=15000)
+        expect(password_input).to_be_visible(timeout=15000)
+
         email_input.fill(email)
         password_input.fill(password)
 
         login_button.scroll_into_view_if_needed()
         login_button.click(force=True)
 
-        self.page.wait_for_load_state("load")
+        self.page.wait_for_load_state("domcontentloaded")
