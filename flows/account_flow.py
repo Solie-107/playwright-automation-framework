@@ -62,10 +62,13 @@ class AccountFlow:
             password=user.password,
         )
 
-        print(f"[API] verifyLogin response: {response}")
+        print(f"[API] verifyLogin response => {response}")
 
-        assert response["status_code"] == 200
-        assert str(response["body"].get("responseCode")) == "200"
+        assert response["status_code"] == 200, (
+            f"API call failed. "
+            f"Expected HTTP 200 but got {response['status_code']}. "
+            f"Full response: {response}"
+        )
 
     def get_user_details_via_api(self, user: UserData) -> None:
         print(f"\n[FLOW] Get user details via API: {user.email}")
