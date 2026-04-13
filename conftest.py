@@ -1,5 +1,6 @@
 import os
 import pytest
+from typing import Generator
 from playwright.sync_api import Playwright
 from api.account_api import AccountApi
 from utils.data_factory import UserData, build_user
@@ -31,7 +32,7 @@ def user_data() -> UserData:
 
 # ---------- API ----------
 @pytest.fixture
-def api_client(playwright: Playwright) -> AccountApi:
+def api_client(playwright: Playwright) -> Generator[AccountApi, None, None]:
     request_context = playwright.request.new_context(ignore_https_errors=True)
     client = AccountApi(request_context)
     yield client
