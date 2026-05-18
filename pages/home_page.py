@@ -11,7 +11,7 @@ class HomePage(BasePage):
         print("\n[DEBUG] Home URL:", self.page.url)
         print("[DEBUG] Home title:", self.page.title())
         print("[DEBUG] First 1000 chars of body:")
-        print(self.page.locator("body").inner_text()[:1000])
+        #print(self.page.locator("body").inner_text()[:1000])
 
     def ensure_home_loaded(self) -> None:
         if "automationexercise.com" not in self.page.url:
