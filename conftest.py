@@ -1,8 +1,13 @@
 import os
+import sys
+from pathlib import Path
 import pytest
 from typing import Generator
 from playwright.sync_api import Playwright
 from api.account_api import AccountApi
+
+# Add project root to Python path
+sys.path.insert(0, str(Path(__file__).parent))
 from utils.data_factory import UserData, build_user
 
 

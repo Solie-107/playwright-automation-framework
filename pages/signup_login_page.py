@@ -43,7 +43,7 @@ class SignupLoginPage(BasePage):
         self.page.locator("[data-qa='mobile_number']").fill(user.mobile_number)
 
         create_button = self.page.locator("[data-qa='create-account']")
-        create_button.scroll_into_view_if_needed()
+        ##create_button.scroll_into_view_if_needed()
         expect(create_button).to_be_visible(timeout=15000)
         expect(create_button).to_be_enabled(timeout=15000)
         create_button.click(force=True)
