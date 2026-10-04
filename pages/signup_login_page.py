@@ -17,7 +17,7 @@ class SignupLoginPage(BasePage):
         self.page.locator("[data-qa='signup-button']").click()
 
         # מוודא שאכן עברנו למסך של הטופס
-        self.page.wait_for_url("**/signup*", timeout=15000)
+        self.page.wait_for_url("**/signup*", timeout=15000);
 
     def fill_account_information(self, user: UserData) -> None:
         print("\n[FLOW] Waiting for Account Information page...")
